@@ -1,0 +1,148 @@
+<html>
+    <head></head>
+
+    <title>STL View</title>
+  <style>
+    body {
+      text-align: center;
+	   background: #D6D9DA;
+    }
+
+    canvas { 
+      width: 100%; 
+      height: 100%;
+    }
+	#topmenu {
+				position: absolute;
+				top: 90%;
+				right: 10px;
+				width: 100%;
+				text-align: center;
+				padding: 0;
+				margin: 0;
+				z-index: 1;
+			}
+	button {
+		color: rgb(255, 153, 102);
+		background: transparent;
+		border: 5px;
+		padding: 5px 10px;
+		cursor: pointer;
+	}
+			button:hover {
+				background-color: rgba(255,235,214,0.5);
+			}
+			button:active {
+				color: #000000;
+				background-color: rgba(255,153,102,1);
+			}
+  </style>
+    </head>
+
+    <body>
+    		<div id="topmenu">
+			<button id="b_a">Wireframe</button>
+			<button id="b_b">Shaded</button>
+			<button id="view_top">Top View</button>
+			<button id="view_iso">Iso View</button>
+		</div>
+
+        <script src="three.min.js"></script>
+        <script src="tween.min.js"></script>
+        <script src="OrbitControls.js"></script>
+        <script>
+var camera, scene, renderer, mesh, loader;
+
+init();
+animate();
+
+function init() {
+
+//camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+//camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 10000 );
+//camera.position.z = 5000;
+
+scene = new THREE.Scene();
+
+loader = new THREE.JSONLoader();
+//comment
+loader.load( "outputplate.js", function( geometry ) {
+
+    //var geometry = new THREE.CubeGeometry(5,10,5);
+//geometry.applyMatrix(new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+//alert(geometry.computeFaceNormals())
+material = new THREE.MeshPhongMaterial( { color: 0xff5533, emissive: 0x000000, specular: 0x111111, shininess: 80, side:THREE.DoubleSide,wireframe:false } )
+mesh = new THREE.Mesh( geometry, material );
+mesh.geometry.computeBoundingSphere();
+bBox = mesh.geometry.boundingSphere;
+scene.add( mesh );
+camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 10000 );
+
+rad = bBox.radius;
+camPosition = rad * 4;
+camera.position.set(rad * 2,rad * 2,rad * 2);
+camera.lookAt(scene.position);
+//for object control through mouse
+controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+} );
+
+
+createMenu();
+var ambientLight = new THREE.AmbientLight(0x555555);
+scene.add(ambientLight);
+
+var directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.position.set(1, 1, 1).normalize();
+scene.add(directionalLight);
+
+renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor( 0xFFFFFF, 0.5 ); 
+document.body.appendChild( renderer.domElement );
+
+}
+function createMenu() {
+		var b_a = document.getElementById( "b_a" );
+		var b_b = document.getElementById( "b_b" );
+		var view_top = document.getElementById( "view_top" );
+		var view_iso = document.getElementById( "view_iso" );
+		b_a.addEventListener( 'click', function() { visualizationType = 0; wireframeshow() } );
+		b_b.addEventListener( 'click', function() { visualizationType = 1; shadedshow() } );
+		view_top.addEventListener( 'click', function() { visualizationType = 1; topView() } );
+		view_iso.addEventListener( 'click', function() { visualizationType = 1; isoView() } );
+	}
+function wireframeshow() {
+    mesh.material.wireframe = true;
+    mesh.material.needsUpdate = true;
+}
+function shadedshow() {
+    mesh.material.wireframe = false;
+    mesh.material.needsUpdate = true;
+}
+function topView() {
+var twePos = new TWEEN.Tween(camera.position).to({ x: 0, y: rad * 4, z: 0 }, 800).start().easing(TWEEN.Easing.Sinusoidal.InOut);
+//var twePosControl = new TWEEN.Tween(controls.traget).to({ x: 0, y: rad * 4, z: 0 }, 800).start().easing(TWEEN.Easing.Sinusoidal.InOut);
+//var twePosUp = new TWEEN.Tween(camera.lookAt).to({ x: 0, y: rad * 4, z: 0 }, 800).start().easing(TWEEN.Easing.Sinusoidal.InOut);
+   // camera.position.set(0,rad * 4,0);
+    //camera.lookAt(scene.position);
+}
+function isoView() {
+var twePos = new TWEEN.Tween(camera.position).to({ x: rad * 4, y: rad * 4, z: rad * 4 }, 800).start().easing(TWEEN.Easing.Sinusoidal.InOut);
+ //   camera.position.set(rad * 4,rad * 4,rad * 4);
+   // camera.lookAt(scene.position);
+}
+function animate() {
+    requestAnimationFrame( animate );
+   TWEEN.update();
+    render();
+}
+function render() {
+		renderer.render(scene, camera); // Each time we change the position of the object, we must re-render it.
+		//control update
+		controls.update();
+		//camera.updateProjectionMatrix();
+	};
+</script>
+    </body>
+</html>
